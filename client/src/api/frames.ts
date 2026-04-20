@@ -1,3 +1,4 @@
+import { resolveApiUrl } from "../lib/apiOrigin";
 import { apiFetch } from "./client";
 
 export type FrameRow = {
@@ -102,7 +103,7 @@ export function getLowStockCount(): Promise<{ count: number }> {
 }
 
 export async function downloadFramesExport(token: string | null): Promise<Blob> {
-  const res = await fetch("/api/frames/export", {
+  const res = await fetch(resolveApiUrl("/api/frames/export"), {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Export failed");

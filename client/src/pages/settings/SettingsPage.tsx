@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { getClinicSettings, updateClinicSettings, uploadClinicLogo, type ClinicSettings } from "../../api/settings";
+import { resolvePublicUrl } from "../../lib/apiOrigin";
 import { listUsers, createUser, patchUser, type UserRow } from "../../api/users";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -165,7 +166,11 @@ export function SettingsPage() {
               <span className="text-zinc-500">Logo</span>
               {s.clinicLogoUrl && (
                 <div className="mt-2 mb-2">
-                  <img src={s.clinicLogoUrl} alt="Logo" className="h-16 object-contain border rounded p-1 bg-white" />
+                  <img
+                    src={resolvePublicUrl(s.clinicLogoUrl) ?? s.clinicLogoUrl}
+                    alt="Logo"
+                    className="h-16 object-contain border rounded p-1 bg-white"
+                  />
                 </div>
               )}
               {isAdmin && (

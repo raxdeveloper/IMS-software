@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import imageCompression from "browser-image-compression";
 import { checkPhone } from "../../api/patients";
+import { resolvePublicUrl } from "../../lib/apiOrigin";
 import { calculateAge } from "../../lib/patientUtils";
 import { getDistrictsByProvince, NEPAL_CITIES, NEPAL_PROVINCES, isValidNepalPhone } from "../../utils/nepal";
 import { PatientAvatar } from "./PatientAvatar";
@@ -110,7 +111,13 @@ export function PatientForm({ mode, patientCode, editingId, initial, submitLabel
       ...initial,
       gender: (initial.gender as PatientFormValues["gender"]) || "Male",
     });
-    if (initial.photoUrl) setPhotoPreview(initial.photoUrl.startsWith("http") ? initial.photoUrl : initial.photoUrl);
+    if (initial.photoUrl) {
+      setPhotoPreview(
+        initial.photoUrl.startsWith("http")
+          ? initial.photoUrl
+          : (resolvePublicUrl(initial.photoUrl) ?? initial.photoUrl),
+      );
+    }
   }, [initial]);
 
   useEffect(() => {

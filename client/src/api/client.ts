@@ -6,6 +6,7 @@ import {
   getCachedPatientDetail,
   getPatientsListFromPath,
 } from "../lib/offlineDb";
+import { resolveApiUrl } from "../lib/apiOrigin";
 import { enqueueOfflineMutation, OfflineMutationQueuedError } from "../lib/offlineQueue";
 
 export { OfflineMutationQueuedError, isOfflineMutationQueuedError } from "../lib/offlineQueue";
@@ -111,9 +112,10 @@ export async function apiFetch<T>(
     throw new OfflineMutationQueuedError("You are offline — connect to retry.");
   }
 
+  const url = resolveApiUrl(path);
   let res: Response;
   try {
-    res = await fetch(path, {
+    res = await fetch(url, {
       ...rest,
       body,
       headers: {

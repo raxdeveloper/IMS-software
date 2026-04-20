@@ -1,4 +1,5 @@
 import type { ClinicSettings } from "../../api/settings";
+import { resolvePublicUrl } from "../../lib/apiOrigin";
 import type { OrderDetail } from "../../api/orders";
 import { formatInrPaiseDisplay } from "../../lib/moneyInr";
 import { formatAxisDisplay, formatDiopter } from "../../lib/optical";
@@ -39,7 +40,11 @@ export function OrderInvoiceContent({ clinic, order }: Props) {
       <div className="flex flex-wrap justify-between gap-4 border-b border-zinc-300 pb-4 mb-4">
         <div className="flex gap-3">
           {clinic.clinicLogoUrl ? (
-            <img src={clinic.clinicLogoUrl} alt="" className="h-14 w-auto object-contain" />
+            <img
+              src={resolvePublicUrl(clinic.clinicLogoUrl) ?? clinic.clinicLogoUrl}
+              alt=""
+              className="h-14 w-auto object-contain"
+            />
           ) : (
             <div className="h-14 w-14 rounded bg-zinc-200 flex items-center justify-center text-xs text-zinc-500">Logo</div>
           )}

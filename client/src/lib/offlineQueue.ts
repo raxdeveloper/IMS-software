@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { resolveApiUrl } from "./apiOrigin";
 import { getMutationQueue, setMutationQueue, type QueuedMutation } from "./offlineDb";
 
 const TOKEN_KEY = "ims_token";
@@ -42,7 +43,7 @@ export async function processMutationQueue(): Promise<number> {
   for (const item of q) {
     try {
       const token = item.token ?? getStoredToken();
-      const res = await fetch(item.path, {
+      const res = await fetch(resolveApiUrl(item.path), {
         method: item.method,
         body: item.body,
         headers: {

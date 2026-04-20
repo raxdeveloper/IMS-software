@@ -1,3 +1,4 @@
+import { resolveApiUrl } from "../lib/apiOrigin";
 import { apiFetch } from "./client";
 
 export type SpectacleLensRow = {
@@ -227,7 +228,7 @@ export function listContactStockMovements(id: number) {
 }
 
 export async function downloadSpectacleExport(token: string | null) {
-  const res = await fetch("/api/lenses/spectacle/export", {
+  const res = await fetch(resolveApiUrl("/api/lenses/spectacle/export"), {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Export failed");
@@ -235,7 +236,7 @@ export async function downloadSpectacleExport(token: string | null) {
 }
 
 export async function downloadContactExport(token: string | null) {
-  const res = await fetch("/api/lenses/contact/export", {
+  const res = await fetch(resolveApiUrl("/api/lenses/contact/export"), {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Export failed");
