@@ -112,6 +112,21 @@ export async function apiFetch<T>(
     throw new OfflineMutationQueuedError("You are offline — connect to retry.");
   }
 
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN?.trim();
+  if (
+    import.meta.env.PROD &&
+    !apiOrigin &&
+    path.startsWith("/api") &&
+    typeof window !== "undefined"
+  ) {
+    const h = window.location.hostname;
+    if (h.endsWith(".vercel.app") || h.endsWith(".netlify.app")) {
+      throw new Error(
+        "Missing VITE_API_ORIGIN: In your host (Vercel/Netlify) → Environment Variables, set VITE_API_ORIGIN to your API base URL (example: https://your-api.onrender.com) with no trailing slash, then redeploy the frontend.",
+      );
+    }
+  }
+
   const url = resolveApiUrl(path);
   let res: Response;
   try {
@@ -145,6 +160,14 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const errPayload = data as ApiError;
+    if (res.status === 405 && path.startsWith("/api")) {
+      const err = new Error(
+        "Cannot reach the API (HTTP 405). The request hit the static site instead of your backend. Set VITE_API_ORIGIN to your server URL in the frontend env and redeploy. On the API, set CORS_ORIGIN to this app’s URL (comma-separated if needed).",
+      ) as Error & { status: number; body: unknown };
+      err.status = 405;
+      err.body = data;
+      throw err;
+    }
     if (res.status === 503 && method === "GET") {
       const eo = errPayload as { error?: string };
       if (eo?.error === "offline") {
