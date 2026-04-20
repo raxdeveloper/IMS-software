@@ -1,0 +1,456 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Application user — JWT auth; roles: admin, doctor, staff
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         String
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  patientsCreated Patient[]
+  prescriptionsCreated Prescription[] @relation("RxCreatedBy")
+  prescriptionAudits   PrescriptionAudit[]
+  framesCreated      Frame[]           @relation("FrameCreatedBy")
+  stockMovements     StockMovement[]
+  spectacleLensesCreated SpectacleLens[] @relation("SpectacleLensCreatedBy")
+  contactLensesCreated   ContactLens[]   @relation("ContactLensCreatedBy")
+  lensStockMovements     LensStockMovement[]
+  ordersCreated          Order[]         @relation("OrderCreatedBy")
+  orderPaymentsCollected OrderPayment[]  @relation("PaymentCollectedBy")
+  orderStatusLogs        OrderStatusLog[] @relation("StatusChangedBy")
+  appointmentsAsDoctor   Appointment[]    @relation("AppointmentDoctor")
+  appointmentsCreated    Appointment[]    @relation("AppointmentCreatedBy")
+
+  @@map("users")
+}
+
+model Patient {
+  id               Int      @id @default(autoincrement())
+  patientCode      String   @unique @map("patient_code")
+  firstName        String   @map("first_name")
+  middleName       String?  @map("middle_name")
+  lastName         String   @map("last_name")
+  dob              DateTime
+  age              Int?
+  gender           String
+  phone1           String   @map("phone1")
+  phone2           String?  @map("phone2")
+  email            String?
+  address          String?
+  city             String?
+  province         String?  @map("state")
+  district         String?
+  postalCode       String?  @map("pincode")
+  occupation       String?
+  referredBy       String?  @map("referred_by")
+  bloodGroup       String?  @map("blood_group")
+  knownAllergies   String?  @map("known_allergies")
+  medicalHistory   String?  @map("medical_history")
+  photoUrl         String?  @map("photo_url")
+  profileComplete  Boolean  @default(true) @map("profile_complete")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdById      String?  @map("created_by")
+  isDeleted        Boolean  @default(false) @map("is_deleted")
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+  prescriptions Prescription[]
+  orders        Order[]
+  appointments  Appointment[]
+
+  @@map("patients")
+}
+
+model Prescription {
+  id            Int      @id @default(autoincrement())
+  rxNumber      String   @unique @map("rx_number")
+  patientId     Int      @map("patient_id")
+  doctorName    String   @map("doctor_name")
+  rxDate        DateTime @map("rx_date")
+  rxTime        String   @map("rx_time")
+  chiefComplaint String? @map("chief_complaint")
+
+  vaReUnaided String? @map("va_re_unaided")
+  vaLeUnaided String? @map("va_le_unaided")
+  vaReAided   String? @map("va_re_aided")
+  vaLeAided   String? @map("va_le_aided")
+
+  dvReSph   Int    @default(0) @map("dv_re_sph")
+  dvReCyl   Int    @default(0) @map("dv_re_cyl")
+  dvReAxis  Int?   @map("dv_re_axis")
+  dvReAdd   Int    @default(0) @map("dv_re_add")
+  dvReVa    String? @map("dv_re_va")
+
+  dvLeSph   Int    @default(0) @map("dv_le_sph")
+  dvLeCyl   Int    @default(0) @map("dv_le_cyl")
+  dvLeAxis  Int?   @map("dv_le_axis")
+  dvLeAdd   Int    @default(0) @map("dv_le_add")
+  dvLeVa    String? @map("dv_le_va")
+
+  nvReSph   Int    @default(0) @map("nv_re_sph")
+  nvReCyl   Int    @default(0) @map("nv_re_cyl")
+  nvReAxis  Int?   @map("nv_re_axis")
+  nvReAdd   Int    @default(0) @map("nv_re_add")
+  nvReVa    String? @map("nv_re_va")
+
+  nvLeSph   Int    @default(0) @map("nv_le_sph")
+  nvLeCyl   Int    @default(0) @map("nv_le_cyl")
+  nvLeAxis  Int?   @map("nv_le_axis")
+  nvLeAdd   Int    @default(0) @map("nv_le_add")
+  nvLeVa    String? @map("nv_le_va")
+
+  pdBinocular Int?    @map("pd_binocular")
+  pdRe        Int?    @map("pd_re")
+  pdLe        Int?    @map("pd_le")
+  pdType      String  @default("binocular") @map("pd_type")
+
+  prismRePower Int?    @map("prism_re_power")
+  prismReBase  String? @map("prism_re_base")
+  prismLePower Int?    @map("prism_le_power")
+  prismLeBase  String? @map("prism_le_base")
+
+  lensType  String  @map("lens_type")
+  frameType String? @map("frame_type")
+  tint      String?
+  coating   Json?   // string[]
+
+  doctorNotes     String?   @map("doctor_notes")
+  nextVisitDate   DateTime? @map("next_visit_date")
+  followupReason  String?   @map("followup_reason")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+
+  patient   Patient @relation(fields: [patientId], references: [id])
+  createdBy User?   @relation("RxCreatedBy", fields: [createdById], references: [id])
+  audits    PrescriptionAudit[]
+  orders    Order[]
+  appointmentId Int?         @map("appointment_id")
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  @@index([appointmentId])
+  @@map("prescriptions")
+}
+
+model PrescriptionAudit {
+  id             Int      @id @default(autoincrement())
+  prescriptionId Int      @map("prescription_id")
+  changedById    String?  @map("changed_by")
+  changedAt      DateTime @default(now()) @map("changed_at")
+  fieldName      String   @map("field_name")
+  oldValue       String?  @map("old_value")
+  newValue       String?  @map("new_value")
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  changedBy    User?        @relation(fields: [changedById], references: [id])
+
+  @@map("prescription_audit")
+}
+
+/// Optical frame inventory — prices stored as NPR × 100 (integer)
+model Frame {
+  id             Int      @id @default(autoincrement())
+  sku            String   @unique
+  brand          String
+  modelName      String   @map("model_name")
+  color          String
+  size           String
+  frameType      String   @map("frame_type")
+  material       String
+  gender         String
+  purchasePrice  Int      @map("purchase_price")
+  sellingPrice   Int      @map("selling_price")
+  stockQty       Int      @default(0) @map("stock_qty")
+  reorderLevel   Int      @default(5) @map("reorder_level")
+  supplierName   String?  @map("supplier_name")
+  supplierContact String? @map("supplier_contact")
+  barcode        String?
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdById    String?  @map("created_by")
+
+  createdBy User? @relation("FrameCreatedBy", fields: [createdById], references: [id])
+  movements StockMovement[]
+
+  @@index([brand])
+  @@index([modelName])
+  @@map("frames")
+}
+
+model StockMovement {
+  id            Int      @id @default(autoincrement())
+  frameId       Int      @map("frame_id")
+  movementType  String @map("movement_type")
+  quantity      Int
+  stockChange   Int      @map("stock_change")
+  reason        String
+  reference     String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdById   String?  @map("created_by")
+
+  frame     Frame @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  @@index([frameId])
+  @@map("stock_movements")
+}
+
+/// Spectacle lens blanks — SPH/CYL ranges as integer × 100 (same as prescriptions)
+model SpectacleLens {
+  id             Int      @id @default(autoincrement())
+  sku            String   @unique
+  brand          String
+  lensType       String   @map("lens_type")
+  lensIndex      String   @map("lens_index")
+  coating        String
+  sphFrom        Int      @map("sph_from")
+  sphTo          Int      @map("sph_to")
+  cylFrom        Int      @map("cyl_from")
+  cylTo          Int      @map("cyl_to")
+  side           String
+  stockUnit      String   @map("stock_unit")
+  purchasePrice  Int      @map("purchase_price")
+  sellingPrice   Int      @map("selling_price")
+  stockQty       Int      @default(0) @map("stock_qty")
+  reorderLevel   Int      @default(5) @map("reorder_level")
+  supplierName   String?  @map("supplier_name")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdById    String?  @map("created_by")
+
+  createdBy User? @relation("SpectacleLensCreatedBy", fields: [createdById], references: [id])
+  movements LensStockMovement[]
+
+  @@index([brand])
+  @@index([lensIndex])
+  @@map("spectacle_lenses")
+}
+
+model ContactLens {
+  id               Int      @id @default(autoincrement())
+  sku              String   @unique
+  brand            String
+  contactType      String   @map("contact_type")
+  modality         String
+  power            Int
+  bc               String
+  dia              String
+  colorType        String   @map("color_type")
+  colorName        String?  @map("color_name")
+  boxQty           Int      @map("box_qty")
+  purchasePrice    Int      @map("purchase_price")
+  sellingPrice     Int      @map("selling_price")
+  stockQty         Int      @default(0) @map("stock_qty")
+  reorderLevel     Int      @default(5) @map("reorder_level")
+  expiryTracking   Boolean  @default(false) @map("expiry_tracking")
+  supplierName     String?  @map("supplier_name")
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdById      String?  @map("created_by")
+
+  createdBy User? @relation("ContactLensCreatedBy", fields: [createdById], references: [id])
+  batches   ContactLensBatch[]
+  movements LensStockMovement[]
+
+  @@index([brand])
+  @@map("contact_lenses")
+}
+
+model ContactLensBatch {
+  id            Int      @id @default(autoincrement())
+  contactLensId Int      @map("contact_lens_id")
+  batchCode     String   @map("batch_code")
+  expiryDate    DateTime @map("expiry_date")
+
+  contactLens ContactLens @relation(fields: [contactLensId], references: [id], onDelete: Cascade)
+
+  @@index([contactLensId])
+  @@map("contact_lens_batches")
+}
+
+model LensStockMovement {
+  id                Int      @id @default(autoincrement())
+  spectacleLensId   Int?     @map("spectacle_lens_id")
+  contactLensId     Int?     @map("contact_lens_id")
+  movementType      String   @map("movement_type")
+  quantity          Int
+  stockChange       Int      @map("stock_change")
+  reason            String
+  reference         String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  createdById       String?  @map("created_by")
+
+  spectacleLens SpectacleLens? @relation(fields: [spectacleLensId], references: [id], onDelete: Cascade)
+  contactLens   ContactLens?   @relation(fields: [contactLensId], references: [id], onDelete: Cascade)
+  createdBy     User?          @relation(fields: [createdById], references: [id])
+
+  @@index([spectacleLensId])
+  @@index([contactLensId])
+  @@index([createdAt])
+  @@map("lens_stock_movements")
+}
+
+/// Single-row clinic profile + default GST for new orders (amounts elsewhere: INR × 100)
+model ClinicSettings {
+  id              Int     @id @default(1)
+  clinicName      String  @default("Clinic") @map("clinic_name")
+  clinicAddress   String? @map("clinic_address")
+  clinicPhone     String? @map("clinic_phone")
+  clinicEmail     String? @map("clinic_email")
+  clinicGstNumber String? @map("clinic_gst_number")
+  clinicLogoUrl   String? @map("clinic_logo_url")
+  defaultGstPercent Int   @default(0) @map("default_gst_percent")
+  invoiceTerms    String? @map("invoice_terms")
+
+  currencySymbol        String  @default("₹") @map("currency_symbol")
+  /// JSON array of 7 booleans: Mon … Sun
+  workingDaysJson       String  @default("[true,true,true,true,true,true,false]") @map("working_days_json")
+  defaultReorderFrame   Int     @default(5) @map("default_reorder_frame")
+  defaultReorderLens    Int     @default(5) @map("default_reorder_lens")
+
+  appointmentStartMin   Int     @default(540) @map("appointment_start_min")
+  appointmentEndMin     Int     @default(1140) @map("appointment_end_min")
+  appointmentSlotStepMin Int    @default(30) @map("appointment_slot_step_min")
+  reminderWhatsappTemplate String? @map("reminder_whatsapp_template")
+  reminderSmsTemplate      String? @map("reminder_sms_template")
+  reminderDayBefore     Boolean @default(false) @map("reminder_day_before")
+  reminderTwoHours      Boolean @default(false) @map("reminder_two_hours")
+
+  @@map("clinic_settings")
+}
+
+model Appointment {
+  id                Int      @id @default(autoincrement())
+  patientId         Int      @map("patient_id")
+  doctorUserId      String?  @map("doctor_user_id")
+  doctorDisplayName String   @map("doctor_display_name")
+  startsAt          DateTime @map("starts_at")
+  appointmentType   String   @map("appointment_type")
+  chiefComplaint    String?  @map("chief_complaint")
+  staffNotes        String?  @map("staff_notes")
+  status            String   @default("booked")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by")
+
+  patient    Patient @relation(fields: [patientId], references: [id])
+  doctorUser User?   @relation("AppointmentDoctor", fields: [doctorUserId], references: [id])
+  createdBy  User?    @relation("AppointmentCreatedBy", fields: [createdById], references: [id])
+  prescriptions Prescription[]
+
+  @@index([startsAt])
+  @@index([patientId])
+  @@index([doctorUserId, startsAt])
+  @@map("appointments")
+}
+
+model Order {
+  id               Int      @id @default(autoincrement())
+  orderNumber      String   @unique @map("order_number")
+  patientId        Int      @map("patient_id")
+  prescriptionId   Int?     @map("prescription_id")
+  noRxOnFile       Boolean  @default(false) @map("no_rx_on_file")
+  doctorName       String?  @map("doctor_name")
+
+  status           String
+
+  subtotalPaise       Int    @map("subtotal_paise")
+  discountMode        String @map("discount_mode")
+  discountFlatPaise   Int    @default(0) @map("discount_flat_paise")
+  discountPercent     Int    @default(0) @map("discount_percent")
+  taxablePaise        Int    @map("taxable_paise")
+  gstPercent          Int    @default(0) @map("gst_percent")
+  gstAmountPaise      Int    @default(0) @map("gst_amount_paise")
+  totalPaise          Int    @map("total_paise")
+
+  deliveryDate     DateTime? @map("delivery_date")
+  orderNotes       String?   @map("order_notes")
+  labInstructions  String?   @map("lab_instructions")
+
+  stockDeducted    Boolean @default(false) @map("stock_deducted")
+  stockWarning     String? @map("stock_warning")
+  deductionSnapshot String? @map("deduction_snapshot")
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdById      String?  @map("created_by")
+
+  patient       Patient @relation(fields: [patientId], references: [id])
+  prescription  Prescription? @relation(fields: [prescriptionId], references: [id])
+  createdBy     User? @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  items         OrderItem[]
+  payments      OrderPayment[]
+  statusLogs    OrderStatusLog[]
+
+  @@index([patientId])
+  @@index([prescriptionId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             Int    @id @default(autoincrement())
+  orderId        Int    @map("order_id")
+  itemType       String @map("item_type")
+  itemId         Int?   @map("item_id")
+  description    String
+  qty            Int
+  unitPricePaise Int    @map("unit_price_paise")
+  amountPaise    Int    @map("amount_paise")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderPayment {
+  id            Int      @id @default(autoincrement())
+  orderId       Int      @map("order_id")
+  amountPaise   Int      @map("amount_paise")
+  paymentMode   String   @map("payment_mode")
+  reference     String?
+  collectedById String?  @map("collected_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  collectedBy User? @relation("PaymentCollectedBy", fields: [collectedById], references: [id])
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("order_payments")
+}
+
+model OrderStatusLog {
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @map("order_id")
+  fromStatus  String?  @map("from_status")
+  toStatus    String   @map("to_status")
+  note        String?
+  changedById String?  @map("changed_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User? @relation("StatusChangedBy", fields: [changedById], references: [id])
+
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("order_status_log")
+}

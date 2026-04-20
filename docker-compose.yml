@@ -1,0 +1,28 @@
+# Hosting: create a .env next to this file (Compose loads it automatically) with at least:
+#   JWT_SECRET=<32+ random characters — required when NODE_ENV=production>
+#   CORS_ORIGIN=http://localhost:3001   (or your public https URL)
+# Then: docker compose up --build -d
+# App + built SPA: http://localhost:3001  (API and static files on one port)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3001"
+      DATABASE_URL: "${DATABASE_URL:-file:/data/dev.db}"
+      JWT_SECRET: "${JWT_SECRET}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:3001}"
+    volumes:
+      - ims-data:/data
+      - ims-uploads:/app/uploads
+    restart: unless-stopped
+
+volumes:
+  ims-data:
+  ims-uploads:

@@ -1,0 +1,15 @@
+{
+  "name": "Ophthalmic IMS",
+  "short_name": "EyeIMS",
+  "description": "Eye clinic inventory and patient management",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#030806",
+  "background_color": "#030806",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

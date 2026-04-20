@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/* Neon dark-green theme (reference: deep forest + #00FF9D accent) */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --color-accent: #00ff9d;
+  --color-accent-foreground: #030806;
+  --color-ims-base: #030806;
+  --color-ims-surface: rgb(15 24 20 / 0.92);
+  --color-ims-muted: #9cb8ad;
+  --color-re: oklch(0.55 0.15 250);
+  --color-le: oklch(0.55 0.14 155);
+}
+
+html {
+  color-scheme: light dark;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+}
+
+html.dark body {
+  background: radial-gradient(
+    ellipse 120% 90% at 50% -15%,
+    oklch(0.2 0.06 165) 0%,
+    #030806 42%,
+    #000000 100%
+  );
+  color: #e8f4ef;
+}
+
+/* Native <select> dropdown lists: avoid white popup + invisible text (Chrome/Edge) */
+html.dark select option,
+html.dark select optgroup {
+  background-color: #0f1814;
+  color: #ecfdf5;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* Print: prescription sheet + A5 */
+@media print {
+  @page {
+    size: A5 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .no-print,
+  .pdf-capture-root {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .rx-print-sheet {
+    display: block !important;
+  }
+}
+
+.rx-print-sheet {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+@media print {
+  aside,
+  header.no-print,
+  nav,
+  button,
+  [role="dialog"] {
+    display: none !important;
+  }
+  body,
+  html {
+    background: white !important;
+    color: black !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}
+
+@keyframes ims-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-bar {
+  position: relative;
+  overflow: hidden;
+  background: oklch(0.9 0 0);
+}
+.dark .skeleton-bar {
+  background: oklch(0.22 0.03 165);
+}
+.skeleton-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, oklch(0.95 0 0 / 0.6), transparent);
+  animation: ims-shimmer 1.2s ease-in-out infinite;
+}
+.dark .skeleton-bar::after {
+  background: linear-gradient(90deg, transparent, rgb(0 255 157 / 0.12), transparent);
+}
